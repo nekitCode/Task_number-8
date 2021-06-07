@@ -24,6 +24,11 @@ class Calculator {
   appendNumber() {
     this.#digit.forEach((number) => {
       number.addEventListener("click", (e) => {
+
+        if (e.target.innerText === ',') {
+          this.isDot = true;
+        }
+
         if (e.target.innerText === "." && !this.isDot) {
           this.isDot = true;
         } else if (e.target.innerText === "." && this.isDot) {
@@ -31,6 +36,7 @@ class Calculator {
         }
         this.dis2 += e.target.innerText;
         this.#screen2.innerText = this.dis2;
+
       });
     });
   }
@@ -42,7 +48,7 @@ class Calculator {
         this.isDot = false;
         const operationName = e.target.innerText;
         if (this.dis1 && this.dis2 && this.lastOperation) {
-          mathOperation();
+          this.mathOperation();
         } else {
           this.result = parseFloat(this.dis2);
         }
@@ -60,15 +66,20 @@ class Calculator {
   }
 
   mathOperation() {
-    if (this.lastOperation ===  undefined) {
-      console.log(true);
-    } else if (this.lastOperation === "x") {
+
+    if (this.lastOperation === "x") {
       this.result = parseFloat(this.result) * parseFloat(this.dis2);
     } else if (this.lastOperation === "+") {
       this.result = parseFloat(this.result) + parseFloat(this.dis2);
     } else if (this.lastOperation === "-") {
       this.result = parseFloat(this.result) - parseFloat(this.dis2);
     } else if (this.lastOperation === "/") {
+      if (parseFloat(this.result) / parseFloat(this.dis2) == Infinity) {
+          this.result = 0
+          this.dis1 = '';
+          this.dis2 = 'Деление на 0 невозможно';
+          return;
+      }
       this.result = parseFloat(this.result) / parseFloat(this.dis2);
     }
   }
@@ -103,18 +114,18 @@ class Calculator {
         e.key === "7" ||
         e.key === "8" ||
         e.key === "9" ||
-        e.key === "." ||
-        e.key === ","
-      ) {
-        this.clickButtonEl(e.key);
-      } else if (e.key === "+" || e.key === "-" || e.key === "/") {
-        this.clickOperation(e.key);
-      } else if (e.key === "*") {
-        this.clickOperation("x");
-      } else if (e.key == "Enter" || e.key === "=") {
-        this.clickEqual();
-      }
-    });
+        e.key === "." 
+        ) {
+          this.clickButtonEl(e.key);
+        } else if (e.key === "+" || e.key === "-" || e.key === "/") {
+          this.clickOperation(e.key);
+        } else if (e.key === "*") {
+          this.clickOperation("x");
+        } else if (e.key == "Enter" || e.key === "=") {
+          this.clickEqual();
+        } 
+        this.checkOutputScreen2();
+      });
   
   }
 
@@ -124,31 +135,38 @@ class Calculator {
       this.isDot = false;
       this.mathOperation();
       this.clearVar();
-      this.#screen2.innerText = this.result;
+      this.#screen2.innerText = Math.ceil(this.result.toFixed(8) * 100) / 100;
       this.dis2 = this.result;
       this.dis1 = "";
-
     });  
   }
   
   clickButtonEl(key) {
     this.#digit.forEach((button) => {
       if (button.innerText === key) {
-        console.log(button.innerText);
         button.click();
       }
     });
   }
+
   clickOperation(key) {
+    console.log(key);
     this.#operator.forEach((operation) => {
       if (operation.innerText === key) {
-        console.log(operation);
         operation.click();
       }
     });
   }
+
   clickEqual() {
     this.#equally.click();
+  }
+
+  checkOutputScreen2() {
+    let arrResult = Array.from(this.#screen1.innerText);
+    if (arrResult.length > 25) {
+      this.#screen1.innerText = this.result;
+    }
   }
 
 }
@@ -158,7 +176,7 @@ const calculator = new Calculator({
   screen2: document.querySelector(".s2"),
   digit: document.querySelectorAll(".digit"),
   operator: document.querySelectorAll(".operator"),
-  equally: equally = document.querySelector(".equally"),
+  equally: document.querySelector(".equally"),
   clear: document.querySelector(".clear"),
   backspace: document.querySelector(".backspace")
 });
@@ -169,7 +187,3 @@ calculator.checkElement();
 calculator.equalE();
 calculator.clearAll();
 calculator.clearLast();
-
-function commaReplacement(comma) {
-  return comma.replace(/,/, '.');
-}
